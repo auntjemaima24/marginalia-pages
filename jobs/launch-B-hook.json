@@ -1,0 +1,98 @@
+{
+ "action": "launch.open",
+ "input": {
+  "objective": "Marginalia (x.com/marginalia_md): notes in the margin of every trade. Token name \"Marginalia\", symbol \"MARG\", 18 decimals, fixed supply. Callbacks: beforeInitialize, beforeSwap with beforeSwapReturnDelta, afterSwap with afterSwapReturnDelta (flags 0x20cc). Fee rule: no hook fee on buys; MARG sells pay 1% plus a 0.1 IMD stamp with a note in hookData, 3% without; exact-output quiet sells are refused (exact-input only). Where fees go: kept as IMD claims in the hook, split at accrual 70% to the week's thesis prize and 30% to the day's writer refund; never sold for ETH. Who can change it: nobody; no owner, admin, pause, upgrade or setter anywhere. Launch kind univ4_hook on Ethereum mainnet paired with IMD 0xD34a99Bc0f67aE1bbd63C660e6d0b0dd03E263B7, LP fee 12500, tick spacing 60. MarginaliaHook(IPoolManager, token, factory): validates its permissions, binds the first pool initialized through it (requires the supplied factory and fee 12500, never blocks the factory's seeding, liquidity or fee claims, refuses later pools). Its constructor clones (EIP-1167) three companions from the LIVE implementations of launch #1240 and initialises each once: MarginaliaRouter 0x365CcB3cfBC430600485234F56FD5ECb23fd70D1, MarginaliaJudge 0xC93460730a79a22282f063A0c6BA5E340Ac372b4, MarginaliaTreasury 0xe2086012f5F9CC7cAECDBC70dE392e263aAe8481; it calls the stateless MarginaliaPricer 0xEaff9B262341A0cB05579227e662BFE768A71cfb by staticcall. These addresses are compile-time constants in src/MarginaliaImpls.sol, verified by the mainnet-fork rehearsal in test/fork; the constructor reads no chain state (it must pass an empty-EVM rehearsal), and a codeless companion would revert on first use. Do not redeploy the companions. NOTES. Buying MARG through the router with a note in hookData posts a falsifiable call on any ERC-20 X priced on a canonical Uniswap v4, v3 or v2 venue: side BUY or SELL, target at least 10% away, horizon 1-90 days, text up to 280 chars in the event. Cost: a flat 0.1 IMD stamp (to the pools), a fixed 0.25 IMD spent on MARG through the pool, and an IMD bond the author sizes between 0.25 and 10 IMD by how much IMD they send, held as IMD claims for the horizon; a noted sell bonds the minimum off its IMD output. The router may trade X in the same transaction (class Traded); contract authors are class Agent. A THESIS (target 0, up to 8 KB) bonds the same way and needs a child call of the author within 7 days or forfeits. SEALED NOTES. seal(x, venue, hash) commits to a note before posting: it pays one stamp now (non-refundable), prices the venue's BUY and SELL baselines now and snapshots the author's X balance now; the note is then posted through the router no sooner than 30 minutes and no later than 6 hours after the seal, settles against the sealed baseline, and a sealed BUY call is refused if the author's X balance fell since the seal. Between seal and reveal only the author, X and venue are public. A lapsed seal keeps its stamp in the pools. COUNTERS. A thesis whose parentId is another author's open thesis is a rebuttal and competes in the same judged set; a call whose parentId is another author's open call on the same X from the opposite side is a counter-call. No deposit moves between them; each settles on its own price. PRICES. Posting needs a router-held checkpoint of the venue at least one hour old (checkpointVenue; windows expire after six hours): v3/v2 baselines are accumulator TWAPs since the checkpoint, v4 and ETH/IMD-hub baselines the window extreme adverse to the call. RESOLUTION. Permissionless observe(noteId) in a 6-hour window after the horizon records the venue accumulator or spot, the hub leg and the author's balance (bounded-gas read; a failed read counts as not held); at least 3 observations 20 blocks apart spanning at least one hour; a slot is replaced by a more adverse reading. Settle price: TWAP first-to-last on v3/v2, the observation least favourable to the call on v4 and the hub leg; fewer observations or an unpriceable series is VoidNoData (deposit back, scored as wrong). BUY calls must keep their post balance (else VoidSold); SELL calls settle on price alone. RIGHT returns exactly the bonded IMD; WRONG, VoidSold and retractions forfeit it to the pools at once. The hook never holds MARG claims and sells no pot (the deployed judge's convertForfeits finds potMarg() == 0). settle is permissionless and pays the keeper 10% of a forfeited bond. SCORE. score += difficulty x outcome (+1 right, -1 wrong, broken or unproven, -0.5 retracted), difficulty = log2(multiple) x sqrt(30/horizon) x market-cap tier, on every venue. The score is reputation only: no pool pays for it, so a self-provisioned venue (an author as its only LP and trader) can inflate a number but never draw money; every call keeps its right/wrong/broken tallies and the writer refund. PAYOUTS. Thesis prize: once a week, when the pool holds at least 2 IMD, the judge clone buys the panel's ranking of the week's theses through the IMD Intake 0x1397434cd35e8a9C8aC312A61D3A285EB31dea56 (0.5 IMD, head 3, evidence panel) and the hook pays 50/30/20; an empty eligible head rolls the pool forward. Writer refund: every non-retracted note of a day claims an equal split capped at one stamp. Unclaimed pools sweep forward after 28 days. The treasury drips 2% of its IMD into the pools daily. Build from this repository as it is: audit, adapt only what deployment strictly requires, keep all numbers and rules, deploy. Tests: forge test --no-match-path 'test/fork/*' (179 tests); the fork suite needs MAINNET_RPC_URL.",
+  "repoUrl": "https://github.com/auntjemaima24/marginalia.git",
+  "baseCommit": "8075b3ef460834f03584dec4f22bdb1be27d1ca2",
+  "onchain": "univ4_hook",
+  "chainId": 1,
+  "pairWith": "imd",
+  "economics": {
+   "poolBps": 8500
+  },
+  "github": true,
+  "shape": "chain",
+  "references": [
+   "uniswap-v4-hooks",
+   "uniswap-v4-security",
+   "eth-security"
+  ],
+  "steps": [
+   {
+    "skill": "audit-imported-code"
+   },
+   {
+    "skill": "adapt-contract-project"
+   },
+   {
+    "skill": "adversarial-review"
+   }
+  ]
+ },
+ "_check": {
+  "note": "hook launch from the repo on the live launch-1240 implementations",
+  "checkedAt": "2026-10-10",
+  "baseCommit": "8075b3ef460834f03584dec4f22bdb1be27d1ca2",
+  "ok": null,
+  "blockers": null,
+  "plan": [
+   {
+    "title": "Audit your contracts as they are, as another agent",
+    "short": "audit",
+    "skill": "audit-imported-code",
+    "stage": 0
+   },
+   {
+    "title": "Adapt them to launch, fixing what the audit found",
+    "short": "adapt",
+    "skill": "adapt-contract-project",
+    "stage": 1
+   },
+   {
+    "title": "Test them, as another agent",
+    "short": "tests",
+    "skill": "write-foundry-tests",
+    "stage": 2
+   },
+   {
+    "title": "Write what to deploy",
+    "short": "",
+    "stage": 2
+   },
+   {
+    "title": "Audit the math, as a specialist agent",
+    "short": "audit",
+    "skill": "audit-specialist",
+    "stage": 2
+   },
+   {
+    "title": "Audit the permissions, as a specialist agent",
+    "short": "audit",
+    "skill": "audit-specialist",
+    "stage": 2
+   },
+   {
+    "title": "Audit the economics, as a specialist agent",
+    "short": "audit",
+    "skill": "audit-specialist",
+    "stage": 2
+   },
+   {
+    "title": "Audit the control flow, as a specialist agent",
+    "short": "audit",
+    "skill": "audit-specialist",
+    "stage": 2
+   },
+   {
+    "title": "Judge the audit: reproduce, merge and rank what was found",
+    "short": "judge",
+    "skill": "audit-judge",
+    "stage": 3
+   },
+   {
+    "title": "Deploy on Ethereum mainnet",
+    "short": "deploy"
+   }
+  ]
+ }
+}

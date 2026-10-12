@@ -1,0 +1,1 @@
+[{"type": "function", "name": "claimFees", "stateMutability": "nonpayable", "inputs": [{"name": "launchNumber", "type": "uint64"}], "outputs": []}]
