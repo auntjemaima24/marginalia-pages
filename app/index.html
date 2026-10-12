@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marginalia</title>
+<meta name="description" content="Notes in the margin of every trade. A bonded feed of calls and theses on any token, settled by the chain.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='4' y='24' font-size='22'%3E☞%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#feed"><span class="manicule">☞</span> Marginalia</a>
+  <nav>
+    <a href="#feed" data-nav="feed">Feed</a>
+    <a href="#post" data-nav="post">Post</a>
+    <a href="#pools" data-nav="pools">Pools</a>
+    <a href="#record" data-nav="record">Record</a>
+  </nav>
+  <button id="connect" class="btn ghost">Connect</button>
+</header>
+
+<main>
+  <section id="feed" class="view">
+    <p class="lede">A bonded feed of calls and theses on any token. Buy MARG through the router with a note attached; the chain settles whether you were right. Right gets the bond back, wrong feeds the writers' pools, the record follows the wallet. Not a perp DEX, not a prediction market: no leverage, nobody on the other side, no payout for being right.</p>
+    <div class="row between">
+      <h2>Notes</h2>
+      <span id="feed-status" class="muted">loading…</span>
+    </div>
+    <div id="notes" class="cards"></div>
+  </section>
+
+  <section id="post" class="view hidden">
+    <h2>Post a note</h2>
+    <p class="muted">Three steps on chain: checkpoint the venue, wait an hour, post. The hour is the point: your baseline is the venue's price history, not the price at the moment you press the button. A note costs the 0.1 IMD stamp, a fixed 0.25 IMD buy of MARG, and your bond, 0.25 to 10 IMD, which comes back if the call lands.</p>
+
+    <form id="post-form" class="form" autocomplete="off">
+      <label>Kind
+        <select id="kind">
+          <option value="call">Call: a price target by a deadline</option>
+          <option value="thesis">Thesis: long-form, no target; needs your own call under it within 7 days</option>
+        </select>
+      </label>
+
+      <label>Token X <span class="muted">(ERC-20 address; default MARG)</span>
+        <input id="x" placeholder="0x…" value="0xfa0efea559bde229031c2b0a219472316647759c">
+      </label>
+
+      <label>Venue
+        <select id="venue-kind">
+          <option value="marg">The MARG/IMD launch pool (Uniswap v4)</option>
+          <option value="v3">Uniswap v3 pool address (X paired with IMD or WETH)</option>
+          <option value="v2">Uniswap v2 pair address (X paired with IMD or WETH)</option>
+        </select>
+      </label>
+      <label id="venue-ref-row" class="hidden">Pool / pair address
+        <input id="venue-ref" placeholder="0x…">
+      </label>
+
+      <div id="call-fields">
+        <div class="grid2">
+          <label>Side
+            <select id="side"><option value="0">BUY: goes up</option><option value="1">SELL: goes down</option></select>
+          </label>
+          <label>Target move <span class="muted">(≥ 10%)</span>
+            <input id="target" type="number" min="10" max="10000" step="1" value="25"> %
+          </label>
+        </div>
+        <label>Horizon <span class="muted">(1 to 90 days)</span>
+          <input id="horizon" type="number" min="1" max="90" step="1" value="7"> days
+        </label>
+      </div>
+
+      <label>Text <span id="text-limit" class="muted">(up to 280 bytes)</span>
+        <textarea id="text" rows="4" maxlength="8192" placeholder="Why. Cite what can be checked."></textarea>
+      </label>
+
+      <label>Bond <span class="muted">(IMD, 0.25 to 10; returned if right)</span>
+        <input id="bond" type="number" min="0.25" max="10" step="0.05" value="0.5">
+      </label>
+
+      <label>Counter or child of <span class="muted">(optional note id)</span>
+        <input id="parent" placeholder="0x… (leave empty for a standalone note)">
+      </label>
+
+      <div class="steps">
+        <div class="step">
+          <div class="row between"><strong>1. Checkpoint the venue</strong><span id="ckpt-status" class="muted">not checked</span></div>
+          <p class="muted small">Starts or extends the venue's price window. Anyone can do it; it costs only gas. Must be at least an hour old and under six hours when you post.</p>
+          <button type="button" id="btn-ckpt" class="btn">Checkpoint</button>
+        </div>
+        <div class="step">
+          <div class="row between"><strong>2. Approve IMD</strong><span id="approve-status" class="muted"></span></div>
+          <p class="muted small">The router pulls <span id="imd-in">—</span> IMD: stamp 0.1 + MARG buy 0.25 + your bond.</p>
+          <button type="button" id="btn-approve" class="btn">Approve</button>
+        </div>
+        <div class="step">
+          <div class="row between"><strong>3. Post</strong><span id="post-status" class="muted"></span></div>
+          <button type="button" id="btn-post" class="btn primary">Post the note</button>
+        </div>
+      </div>
+      <p id="post-error" class="error"></p>
+    </form>
+  </section>
+
+  <section id="pools" class="view hidden">
+    <h2>Pools</h2>
+    <div class="cards" id="pools-cards"></div>
+    <p class="muted small">Every stamp, sell fee and forfeited bond accrues 70% to the week's thesis prize and 30% to the day's writer refund. Theses are ranked by the identity.md oracle panel on reasoning and citations, never on outcome. Nothing in any pool is paid for being right.</p>
+  </section>
+
+  <section id="record" class="view hidden">
+    <h2>Record</h2>
+    <form id="record-form" class="row"><input id="record-addr" placeholder="0x… wallet"><button class="btn">Look up</button></form>
+    <div id="record-out"></div>
+  </section>
+</main>
+
+<footer>
+  <p>Hook <code>0xf0457dd0cf526686190e4f057ba19db14d34a0cc</code> · MARG <code>0xfa0efea559bde229031c2b0a219472316647759c</code> · <a href="https://explorer.imd.fun/launches/01771823-5250-4aaa-a55e-da5c1afe1146">launch #1283 on identity.md</a> · <a href="https://x.com/marginalia_md">@marginalia_md</a></p>
+  <p class="muted small">Informational and research purposes only. Not financial advice. Bonds can be lost. Contracts have no owner, pause or upgrade.</p>
+</footer>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

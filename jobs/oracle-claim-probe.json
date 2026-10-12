@@ -1,0 +1,34 @@
+{
+ "action": "oracle.request",
+ "input": {
+  "v": 1,
+  "question": "Fetch the public JSON document at https://cdn.syndication.twimg.com/tweet-result?id=2109295512424009991&token=a . It is X's embed endpoint, readable by anyone over plain HTTPS with no login or API key (a GET returns application/json). Its field text holds one tweet. Answer with the single Ethereum contract address written in that text field. If the document cannot be fetched or names no address, answer 0x0000000000000000000000000000000000000000.",
+  "chainId": 1,
+  "window": {
+   "hours": 24
+  },
+  "answerType": "address",
+  "evidence": "panel",
+  "head": 1,
+  "panelSize": 5,
+  "quorum": 4,
+  "validForSeconds": 86400,
+  "toleranceBps": 0,
+  "definitions": {
+   "source": "the syndication URL given, fetched directly; x.com itself is not needed",
+   "address": "the 0x-prefixed 40-hex-digit string in the text field, as written",
+   "purpose": "a read probe for Marginalia: can the panel read a tweet through this mirror and extract an address"
+  },
+  "guards": {
+   "sources": [
+    "https://cdn.syndication.twimg.com/"
+   ],
+   "mustHaveCode": true
+  }
+ },
+ "_check": {
+  "note": "PROBE (0.5 IMD): can the panel read a tweet via X's syndication mirror and extract the address in it? Expected answer 0xfa0efea559bde229031c2b0a219472316647759c (the MARG token named in @bddnewstoday's tweet). Decides whether the Keys claim can be oracle-attested instead of site-signed.",
+  "checkedAt": "2026-10-11",
+  "result": "PAID 2026-10-11 17:44Z (0.5 IMD) → job 4eb55de9-241c-4d3f-a60a-1ae808197024, oracle request 99f49123-221b-412c-b57c-90520c049f46: ATTESTED in 62s, 5/5 agreed (quorum 4), answer 0xfa0efea559bde229031c2b0a219472316647759c = the expected MARG address; members fetched the syndication URL directly (HTTP 200 application/json). Signer 0x5598aa91…2982."
+ }
+}

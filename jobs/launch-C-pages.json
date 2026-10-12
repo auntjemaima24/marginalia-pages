@@ -1,0 +1,38 @@
+{
+ "action": "launch.open",
+ "input": {
+  "objective": "Deploy MarginaliaPages (src/MarginaliaPages.sol) on Ethereum mainnet: ONE contract, constructor (address hook, address intake, bytes32 action, address signer) = (0xf0457dd0cf526686190e4f057ba19db14d34a0cc the live MarginaliaHook of launch 1283, 0x1397434cd35e8a9C8aC312A61D3A285EB31dea56 the IdentityMD Intake, bytes32('oracle.request@oracle-1') the oracle action, 0x5598Aa9146215Bc13eb26f2c692Ad1461Fd32982 the IdentityMD oracle signer) — the same three oracle constants the live hook holds as INTAKE, ACTION and ORACLE_SIGNER and passes to its judge. What it is: the page market of Marginalia, notes in the margin of every trade. A page of an author's marginalia is the seat in that writer's room: the site delivers the author's sealed notes and reasoning to page holders first. Pages are bought and sold against a linear bonding curve priced in IMD 0xD34a99Bc0f67aE1bbd63C660e6d0b0dd03E263B7 (the n-th page costs BASE 0.1 IMD x n), with NO cap on supply (access is always open at the price demand sets), and are never transferable (buy and sell on the curve only; the curve reserve always covers every holder selling out at any depth). Every trade pays FEE_BPS = 10% of its value: ISSUER_BPS 90% of the fee to the issuer in IMD, BURN_BPS 5% of the fee buys MARG on the launch pool through the hook's PoolManager (a quiet buy, no hook fee) and sends it to 0x000000000000000000000000000000000000dEaD, the remaining 5% of the fee goes to the hook's pools through hook.fundPot (70% thesis prize / 30% writer refund). An issuer is any address (subjectOf(address) pays itself) or an X handle nobody has claimed (subjectOfHandle(string), lower-cased and validated on chain: 1-15 of a-z 0-9 underscore): pages of a handle trade on the same curve while the issuer's 90% waits in escrow. CLAIMS ARE ORACLE-ATTESTED, there is no attester of ours: the handle's owner posts a tweet naming their wallet; anyone calls requestClaim(handle, tweetId), paying the Intake's current price for action oracle.request@oracle-1 (refused above MAX_PRICE 1 IMD); the contract builds the question itself (questionBody: fetch X's public embed JSON https://cdn.syndication.twimg.com/tweet-result?id=<tweetId>&token=a, if user.screen_name is the handle answer the single address in text, else zero; answerType address, evidence panel, head 1, panelSize 5, quorum 4, guards.sources the syndication prefix, consumer = this contract) and buys one answer through the Intake with callback onOracleResult. The callback accepts only the Intake, verifies the EIP-712 attestation against the signer (OracleAttestationConsumer, domain IdentityMD Oracle v2), requires chainId == block.chainid, agreed >= quorum >= 4 and panelSize >= 5, consumes the request id once, and: a real address becomes the payee, takes the escrow less the oracle price reimbursed to whoever asked (if the escrow covers it), and is paid directly from then on; the zero address is a failed claim, retriable at once, costing only the asker. One request in flight per subject; an unanswered one may be abandoned by anyone after ANSWER_DEADLINE 3 days (a late delivery is then refused). One successful claim per subject ever. Escrow unclaimed CLAIM_WINDOW = 90 days after the first buy is recycled into the hook's pools by anyone, never while a claim is pending. No owner, no pause, no upgrade, no attester, nonReentrant trades, claims and callback, unlockCallback accepts only the PoolManager. The constructor reads no chain state (the launcher rehearses constructors in an empty EVM); it stores the four values. Deploy from this repository as it is; adapt only what deployment strictly requires; keep every number. Tests: forge test --match-path test/Pages.t.sol (12 tests against the local hook, a local Intake mock and an EOA signer, incl. the 200k callback stipend and replay/tamper refusals).",
+  "repoUrl": "https://github.com/auntjemaima24/marginalia-pages.git",
+  "baseCommit": "774273c50dff47cdb46d5512d350d3d1ef33bd34",
+  "onchain": "evm_contracts",
+  "chainId": 1,
+  "github": true,
+  "contracts": [
+   "src/MarginaliaPages.sol"
+  ],
+  "shape": "chain",
+  "references": [
+   "uniswap-v4-hooks",
+   "eth-security"
+  ],
+  "steps": [
+   {
+    "skill": "audit-imported-code"
+   },
+   {
+    "skill": "adapt-contract-project"
+   },
+   {
+    "skill": "adversarial-review"
+   }
+  ]
+ },
+ "_check": {
+  "note": "PAGE market (renamed from keys 2026-10-12; NO supply cap), ORACLE-ATTESTED claims. Import from the public release repo auntjemaima24/marginalia-pages (single squashed commit), free check, then pay 0.5 IMD.",
+  "checkedAt": "2026-10-12",
+  "result": "blockers: []",
+  "paid": "2026-10-12 04:27Z → job 0925298b-5eb6-4da2-ad34-b0e5aa2d1fdc (0.5 IMD gross / 0.25 net)",
+  "pinnedRef": "release/pages-v09 (permanent branch on auntjemaima24/marginalia-pages; never force-push over a running job's baseCommit)",
+  "status": "BLOCKED 2026-10-12 08:39Z dependency_missing: its baseCommit 774273c was orphaned by a force-push of later snapshots over main; commit restored as release/pages-v09 the same day. SUPERSEDED by launch-E-pages-v2.json either way."
+ }
+}

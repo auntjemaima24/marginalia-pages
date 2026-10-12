@@ -1,0 +1,14 @@
+out/
+cache/
+broadcast/
+.env
+brand/*-raw.png
+brand/*3000x1000.png
+
+# keeper
+keeper/.env
+keeper/data/
+keeper/node_modules/
+
+# built site mirrors (from the swarm deliveries)
+release/
