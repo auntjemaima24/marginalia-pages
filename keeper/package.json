@@ -1,0 +1,16 @@
+{
+  "name": "marginalia-keeper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Keeper for Marginalia on Ethereum mainnet: observes and settles notes, forfeits lapsed theses, requests and pays weekly judging, sweeps stale pools, keeps venue checkpoints warm. Permissionless work; holds no user funds.",
+  "engines": { "node": ">=22.5" },
+  "scripts": {
+    "start": "node src/index.js",
+    "once": "node src/index.js --once",
+    "dry": "node src/index.js --once --dry"
+  },
+  "dependencies": {
+    "viem": "^2.21.0"
+  }
+}

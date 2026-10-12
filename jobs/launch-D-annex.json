@@ -1,0 +1,36 @@
+{
+ "action": "launch.open",
+ "input": {
+  "objective": "Deploy MarginaliaAnnex (src/MarginaliaAnnex.sol) on Ethereum mainnet: ONE contract, constructor (address hook, address intake, bytes32 action, address signer) = (0xf0457dd0cf526686190e4f057ba19db14d34a0cc the live MarginaliaHook of launch 1283, 0x1397434cd35e8a9C8aC312A61D3A285EB31dea56 the IdentityMD Intake, bytes32('oracle.request@oracle-1') the oracle action, 0x5598Aa9146215Bc13eb26f2c692Ad1461Fd32982 the IdentityMD oracle signer) — the same constants the live hook holds as INTAKE, ACTION and ORACLE_SIGNER. What it is: Marginalia calls (falsifiable price calls with a bond) on the Uniswap v4 pools the hook's immutable router cannot accept. The router admits a v4 pool only when its hook is none or ours; every IMD custom_token launch pool carries the factory's PoolInitializationGuard hook 0x784ff9a3ac5d88a30bfff6f7f2a270161fbe6000 (address bits 0x2000, beforeInitialize only), so a call on any launched token's pool was refused. VENUE RULE (no owner): a live v4 pool with X on one side and IMD 0xD34a99Bc0f67aE1bbd63C660e6d0b0dd03E263B7 / WETH / native on the other whose hook is (1) none or the Marginalia hook, or (2) has NO swap permission bits (BEFORE_SWAP, AFTER_SWAP, BEFORE_SWAP_RETURNS_DELTA, AFTER_SWAP_RETURNS_DELTA, read from the address as v4 defines them: such a hook cannot touch a swap, which admits the IMD guard by arithmetic; EXCEPT a dynamic-fee pool, key.fee == 0x800000, whose hook sets the LP fee with no permission bit and could freeze the price with a 100% exact-input fee: dynamic-fee pools pass only with the Marginalia hook or an admitted hook), or (3) was admitted by the IDENTITYMD ORACLE PANEL: anyone calls requestAdmission(address[] hooks), 1 to MAX_ADMISSION_LIST 4 hooks each with code, paying the Intake's current price for oracle.request@oracle-1 (refused above MAX_PRICE 1 IMD); the contract builds the question itself (admissionBody: the subset of hooks that keep their pools OPEN — any caller may swap, no allowlist, selective refusal or selective pause, and the pool price moves only through swaps and liquidity changes any caller may make; a fixed fee or tax charged to every trader alike does not exclude a hook, an owner-settable fee, a global pause or an upgrade path does; answerType address[], evidence panel, head = list length, panelSize 5, quorum 4, guards.allow = the list, consumer = this contract) and buys one answer with callback onOracleResult, which accepts only the Intake, verifies the EIP-712 attestation against the signer (OracleAttestationConsumer, domain IdentityMD Oracle v2), requires chainId == block.chainid, agreed >= quorum >= 4 and panelSize >= 5, consumes the request id once, and sets admittedHook only for hooks that were BOTH asked about AND named; admission is permanent. ECONOMICS: post(params, v4Key, bond, minMargOut, deadline) pulls STAMP 0.1 + MARG_BUY 0.25 + bond (BOND_MIN 0.25 <= bond <= BOND_MAX 10) in IMD from the author; one quiet swap of 0.35 IMD on the hook's own MARG/IMD pool through the hook's PoolManager (unlockCallback accepts only the PoolManager): the 0.25 share of the MARG goes to the author (minMargOut bounds it), the 0.10 share is sent to 0x000000000000000000000000000000000000dEaD (Burned event); the bond is held as IMD. Same rules as the hook: targetBps >= 10% from par on the call's side (0 = thesis is refused here), horizon 1-90 days, text 1-280 bytes, class Agent when the author has code else Declared, its own checkpointVenue price windows through the immutable stateless MarginaliaPricer at 0xEaff9B262341A0cB05579227e662BFE768A71cfb (first checkpoint at least one hour and at most six hours old), observe(id) in [horizonEnd, +6h] (3 to 16 readings, 20 blocks apart, spanning an hour, a later reading may replace the last only when more adverse), hold rule on BUY (author's X balance at every observation >= post balance, a failed balanceOf counts as not held), settle(id) after the window: each v4 observation priced alone through the pricer, the most adverse decides, RIGHT returns the bond via claimDeposit, WRONG / VOID_SOLD forfeit it to the hook's pools through hook.fundPot with KEEPER_BPS 10% to the settler, VOID_NODATA returns it and scores as wrong, retract(id, text) before the horizon forfeits the whole bond and scores at minus half; score is difficulty-weighted reputation only (pricer.difficulty with mcap = postPrice x X.totalSupply), nothing pays for being right. A counter-call (parentId) may target an open call on this contract or on the hook (read-only through hook.noteOf; an id unknown to both is refused), same X, opposite side, not the author's own. Its own noteCount, ids keccak(annex, n), records(wallet) {score, posted, right, wrong, broken, retracted}; reads noteOf, venueOf, observationsOf. No seals and no theses (hook features), no v3/v2 venues (the router has them), no owner, no pause, no upgrade, nonReentrant on post/settle/retract/claim/admission/callback. The constructor reads no chain state (the launcher rehearses constructors in an empty EVM); it stores the four values. Runtime 23.9 KB: keep it under EIP-170. Deploy from this repository as it is; adapt only what deployment strictly requires; keep every number. Tests: forge test --match-path test/Annex.t.sol (17 tests against the local hook, a guard-shaped hook etched at a 0x2000-bit address, a local Intake mock and an EOA signer, incl. the 200k callback stipend at the full 4-hook list, replay/tamper refusals, the 25:10 author/burn split, a held BUY call on the MARG pool settling RIGHT, and the dynamic-fee refusal). An independent adversarial review before this launch found and fixed a double-counted post balance on the MARG venue and the dynamic-fee loophole; the callback measures ~171k gas at the full list, so the callback's write-set must not grow.",
+  "repoUrl": "https://github.com/auntjemaima24/marginalia-pages.git",
+  "baseCommit": "c3369c37283eb0d84ad5c286d6680ed000aa5c53",
+  "onchain": "evm_contracts",
+  "chainId": 1,
+  "github": true,
+  "contracts": [
+   "src/MarginaliaAnnex.sol"
+  ],
+  "shape": "chain",
+  "references": [
+   "uniswap-v4-hooks",
+   "eth-security"
+  ],
+  "steps": [
+   {
+    "skill": "audit-imported-code"
+   },
+   {
+    "skill": "adapt-contract-project"
+   },
+   {
+    "skill": "adversarial-review"
+   }
+  ]
+ },
+ "_check": {
+  "note": "The ANNEX: calls on hooked v4 pools (IMD guard by bits, taxing hooks by oracle admission), stamp burned as MARG (operator decision 2026-10-12). Import from the public release repo (single squashed commit), free check, then the operator pays 0.5 IMD.",
+  "checkedAt": "2026-10-12",
+  "result": "blockers: [] (post-review release snapshot c3369c37283eb0d84ad5c286d6680ed000aa5c53 on auntjemaima24/marginalia-pages main; objective 5782 chars)",
+  "paid": ""
+ }
+}
